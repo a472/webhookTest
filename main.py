@@ -2,16 +2,17 @@ from flask import Flask, request
 
 app = Flask(__name__)
 
-@app.route('/webhook', methods=['POST'])
+VERIFY_TOKEN = "my_secret_token_456"
+
+@app.route('/webhook', methods=['GET', 'POST'])
 def webhook():
-    data = request.json
-    print("Received data:", data)
-    return {'status': 'success'}, 200
+    if request.method == 'GET':
+        token = request.args.get("hub.verify_token")
+        challenge = request.args.get("hub.challenge")
+        if token == VERIFY_TOKEN:
+            return challenge, 200
+        return "Verification token mismatch", 403
 
-@app.route('/', methods=['GET'])
-def home():
-    return "Webhook is running!"
-
-if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=8080)
-  
+    # Handle incoming POST messages from WhatsApp here
+    print(request.json)
+    return "OK", 200
